@@ -1,0 +1,52 @@
+graphe.nbre.sujet<-function(percent=FALSE,min.moyenne=NA,max.moyenne=min.moyenne,min.et=NA,max.et=min.et,titre=NA,complete.titre=paste0("Calculation for ",titre," (",test,")"),
+xlab="% difference",ylab=NA,legend=c(NA,"Mini","Maxi"),power=NA,N=NA,xlim=c(5,30),nbre.lot=NA,test=c("independant","paired","anova","chi2")){
+require(pwr)
+	if(!percent){
+	pct.moyenne<-seq(min.moyenne*xlim[2]/100,min.moyenne*xlim[1]/100,-min.moyenne*.01)
+	cohen1<-pct.moyenne/max.et
+	}
+	else{
+	cohen1<-seq((min.moyenne+xlim[2])/100,(min.moyenne+xlim[1])/100,-.01)
+	cohen1[cohen1>1]<-1
+	max.et<-min.moyenne
+	}
+nbre1<-NULL
+	for (cohen in cohen1){
+		if(test=="independant"){
+			if(is.na(N))
+			nbre<-pwr.t.test(d=cohen,power=power/100,sig.level=0.05,type="two.sample",alternative="two.sided")
+			if (is.na(power))
+			nbre<-pwr.t.test(d=cohen,n=N,sig.level=0.05,type="two.sample",alternative="two.sided")
+		}
+		if(test=="paired"){
+			if(is.na(N))
+			nbre<-pwr.t.test(d=cohen,power=power/100,sig.level=0.05,type="paired",alternative="two.sided")
+			if (is.na(power))
+			nbre<-pwr.t.test(d=cohen,n=N,sig.level=0.05,type="paired",alternative="two.sided")		
+		}
+		if(test=="anova"){
+			if(is.na(N))
+			nbre<-pwr.anova.test(k =nbre.lot,  f = cohen, sig.level = 0.05, power = power/100)
+			if (is.na(power))
+			nbre<-pwr.anova.test(k =nbre.lot,n=N,  f = cohen, sig.level = 0.05)
+		}
+		if(test=="chi2"){
+			if(is.na(N))
+			nbre<-pwr.proportion(p1=min.moyenne/100,p2= cohen,sig.level=0.05,power = power/100,alternative ="two.sided") 
+			if (is.na(power))
+			nbre<-pwr.proportion(p1=min.moyenne/100,p2= cohen,sig.level=0.05,n=N,alternative ="two.sided")
+		}		
+		if(is.na(N))
+		nbre1<-c(ceiling(nbre$n),nbre1)
+		if (is.na(power))
+		nbre1<-c(round(nbre$power*100,1),nbre1)
+	}
+	if(!percent){
+	pct.moyenne<-seq(max.moyenne*xlim[2]/100,max.moyenne*xlim[1]/100,-max.moyenne*.01)
+	cohen2<-pct.moyenne/min.et
+	}
+	else{
+	cohen2<-seq((max.moyenne+xlim[2])/100,(max.moyenne+xlim[1])/100,-.01)
+	cohen2[cohen2>1]<-1
+	min.et<-max.moyenne
+	}
